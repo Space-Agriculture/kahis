@@ -1,0 +1,60 @@
+name: KAHIS daily crawl
+
+on:
+  schedule:
+    # 매일 18:00 KST (= 09:00 UTC)
+    - cron: "0 9 * * *"
+  workflow_dispatch:
+    inputs:
+      full:
+        description: "전체 이력 재수집 (2000-01-01 ~ 오늘)"
+        type: boolean
+        default: false
+      days:
+        description: "증분 수집 기간(일, 진단일 기준)"
+        default: "365"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: kahis-crawl
+  cancel-in-progress: false
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Crawl KAHIS
+        env:
+          FULL: ${{ github.event.inputs.full }}
+          DAYS: ${{ github.event.inputs.days || '365' }}
+        run: |
+          if [ "$FULL" = "true" ]; then
+            python scraper/kahis.py --full
+          else
+            python scraper/kahis.py --days "$DAYS"
+          fi
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/kahis_outbreaks.csv
+          if git diff --cached --quiet; then
+            echo "변경 사항 없음"
+          else
+            git commit -m "data: KAHIS 발생현황 업데이트 $(TZ=Asia/Seoul date +%Y-%m-%d)"
+            git push
+          fi
