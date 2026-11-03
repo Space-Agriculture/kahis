@@ -8,6 +8,7 @@
 - 수집 범위: 2000-01-01 이후 전체 이력. 매일 **최근 365일(진단일 기준)** 을 다시 수집해 기존 데이터의 해당 기간을 교체합니다.
   이렇게 하면 늦게 등록되거나 수정된 건, 종식일 갱신도 반영됩니다.
 - 정렬: 진단일 내림차순
+- 발생 지도: **https://space-agriculture.github.io/kahis/** (GitHub Pages, Leaflet)
 
 > GitHub Actions 스케줄은 서버 상황에 따라 수 분~수십 분 늦게 실행될 수 있습니다.
 
@@ -28,6 +29,22 @@
 
 원본 값은 그대로 보존합니다. 원본에 입력 오류(예: 발생일자 `4026-10-04`)가 있으면 날짜 변환 때 `NA`가 될 수 있습니다.
 발생두수가 미상인 경우 원본에는 `-`로 표기되어 있으며, 아래 함수들은 이를 `NA`로 변환합니다.
+
+## 발생 지도 (GitHub Pages)
+
+[https://space-agriculture.github.io/kahis/](https://space-agriculture.github.io/kahis/)
+
+- Leaflet 지도에 발생 농장의 소재지(리·동 중심 좌표)를 질병별 색상으로 표시합니다. 가까운 지점은 묶어서 보여줍니다.
+- 기본으로 **최근 1달(진단일 기준)** 을 보여주며, 기간(직접 입력, 1주/1달/3달/1년/전체), 축종, 질병을 선택할 수 있습니다.
+- 선택한 조건의 발생 건수·두수·농장 수 요약과 상세 표(최근 1,000건)를 함께 제공합니다.
+- 크롤링 워크플로가 성공할 때마다 `.github/workflows/pages.yml` 이 사이트를 다시 빌드해 배포합니다.
+
+좌표는 [korea-regions-with-coords](https://github.com/swuhalee/korea-regions-with-coords)의 법정동 중심 좌표
+(원자료: 행정안전부 법정동코드, 국토지리정보원 브이월드 경계 / 공공누리 제1유형)를 빌드할 때 내려받아 매칭합니다.
+`전라북도→전북특별자치도`, `당진군→당진시`처럼 명칭이 바뀐 지역은 보정하고, 리 단위가 없으면 읍면동·시군구 좌표로 대체합니다.
+그래도 매칭되지 않는 일부 과거 주소는 지도에서 빠지며, 그 건수를 화면에 표시합니다.
+
+> 처음 한 번은 저장소 **Settings → Pages → Build and deployment → Source** 를 **GitHub Actions** 로 설정해야 합니다.
 
 ## 데이터 불러오기
 
@@ -115,6 +132,9 @@ pip install -r requirements.txt
 python scraper/kahis.py              # CSV가 없으면 전체 수집, 있으면 최근 365일 갱신
 python scraper/kahis.py --days 30    # 최근 30일만 갱신
 python scraper/kahis.py --full       # 전체 이력 재수집
+
+python scraper/build_site.py         # 지도 사이트를 _site/ 에 빌드
+python -m http.server -d _site 8000  # http://localhost:8000 에서 확인
 ```
 
 GitHub의 **Actions → KAHIS daily crawl → Run workflow** 에서 수동으로도 실행할 수 있습니다(`full`, `days` 옵션 지원).
@@ -123,7 +143,10 @@ GitHub의 **Actions → KAHIS daily crawl → Run workflow** 에서 수동으로
 
 ```
 scraper/kahis.py               # 크롤러 (requests + BeautifulSoup)
+scraper/build_site.py          # 주소→좌표 변환 및 지도 사이트 빌드
+site/                          # 지도 페이지 (Leaflet, HTML/JS/CSS)
 .github/workflows/crawl.yml    # 매일 18:00 KST 실행, 변경 시 자동 커밋
+.github/workflows/pages.yml    # 크롤링 후 GitHub Pages 배포
 data/kahis_outbreaks.csv       # 수집 결과
 requirements.txt
 ```

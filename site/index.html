@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>가축전염병 발생 지도 | KAHIS</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>가축전염병 발생 현황 지도</h1>
+    <span id="updated" class="muted"></span>
+  </header>
+
+  <main>
+    <aside id="panel">
+      <section>
+        <h2>기간 <small class="muted">(진단일 기준)</small></h2>
+        <div class="dates">
+          <input type="date" id="from" aria-label="시작일" />
+          <span>~</span>
+          <input type="date" id="to" aria-label="종료일" />
+        </div>
+        <div class="quick">
+          <button data-range="7d">1주</button>
+          <button data-range="1m">1달</button>
+          <button data-range="3m">3달</button>
+          <button data-range="1y">1년</button>
+          <button data-range="all">전체</button>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>축종</h2>
+          <span class="toggle"><a href="#" data-target="species" data-on="1">전체</a> · <a href="#" data-target="species" data-on="0">해제</a></span>
+        </div>
+        <div id="species" class="checks"></div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>질병</h2>
+          <span class="toggle"><a href="#" data-target="diseases" data-on="1">전체</a> · <a href="#" data-target="diseases" data-on="0">해제</a></span>
+        </div>
+        <div id="diseases" class="checks"></div>
+      </section>
+
+      <section id="summary"></section>
+
+      <footer class="muted">
+        출처: <a href="https://home.kahis.go.kr/home/lkntscrinfo/selectLkntsOccrrncList.do" target="_blank" rel="noopener">국가가축방역통합시스템(KAHIS)</a><br />
+        위치는 농장 소재지(리·동)의 중심 좌표라 실제 농장 위치와 다를 수 있습니다.<br />
+        <a href="data/kahis_outbreaks.csv" download>CSV 다운로드</a> ·
+        <a href="https://github.com/Space-Agriculture/kahis" target="_blank" rel="noopener">GitHub</a>
+      </footer>
+    </aside>
+
+    <div id="content">
+      <div id="map"></div>
+      <div id="table-wrap">
+        <table>
+          <thead>
+            <tr><th>진단일</th><th>발생일자</th><th>질병</th><th>축종(품종)</th><th>농장명</th><th>농장소재지</th><th>두수</th><th>진단기관</th><th>종식일</th></tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+        <p id="table-note" class="muted"></p>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
